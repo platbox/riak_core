@@ -24,7 +24,8 @@
          stage_force_replace/1, print_staged/1, commit_staged/1,
          clear_staged/1, transfer_limit/1, pending_claim_percentage/2,
          transfers/1, add_user/1, add_source/1, grant/1, revoke/1,
-         print_users/1, print_user/1, print_sources/1]).
+         print_users/1, print_user/1, print_sources/1, security_enable/1,
+         security_disable/1, security_status/1]).
 
 %% @doc Return for a given ring and node, percentage currently owned and
 %% anticipated after the transitions have been completed.
@@ -942,6 +943,23 @@ print_user([User]) ->
 
 print_sources([]) ->
     riak_core_security:print_sources().
+
+security_enable([]) ->
+    riak_core_security:enable().
+
+security_disable([]) ->
+    riak_core_security:disable().
+
+security_status([]) ->
+    case riak_core_security:status() of
+        enabled ->
+            io:format("Enabled~n");
+        disabled ->
+            io:format("Disabled~n");
+        enabled_but_no_capability ->
+            io:format("WARNING: Configured to be enabled, but not supported "
+                      "on all nodes so it is disabled!~n")
+    end.
 
 parse_options(Options) ->
     parse_options(Options, []).

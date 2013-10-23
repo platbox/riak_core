@@ -25,7 +25,7 @@
 %% API
 -export([authenticate/3, add_user/2, add_source/4, add_grant/3,
          add_revoke/3, check_permission/2, check_permissions/2,
-         get_username/1, is_enabled/0]).
+         get_username/1, is_enabled/0, enable/0, disable/0, status/0]).
 %% TODO add rm_source, API to deactivate/remove users
 
 -record(context,
@@ -366,9 +366,46 @@ add_source(User, CIDR, Source, Options) ->
     add_source([User], CIDR, Source, Options).
 
 is_enabled() ->
-    %% TODO this should be some kind of capability or cluster-wide config
-    app_helper:get_env(riak_core, security, false).
+    case riak_core_capability:get({riak_core, security}) of
+        true ->
+           case  riak_core_metadata:get({<<"security">>, <<"status">>},
+                                        enabled) of
+               true ->
+                   true;
+               _ ->
+                   false
+           end;
+        _ ->
+            false
+    end.
 
+enable() ->
+    case riak_core_capability:get({riak_core, security}) of
+        true ->
+           riak_core_metadata:put({<<"security">>, <<"status">>},
+                                        enabled, true);
+        false ->
+            not_supported
+    end.
+
+disable() ->
+    riak_core_metadata:put({<<"security">>, <<"status">>},
+                           enabled, false).
+
+status() ->
+    Enabled = riak_core_metadata:get({<<"security">>, <<"status">>}, enabled,
+                                    [{default, false}]),
+    case Enabled of
+        true ->
+            case riak_core_capability:get({riak_core, security}) of
+                true ->
+                    enabled;
+                _ ->
+                    enabled_but_no_capability
+            end;
+        _ ->
+            disabled
+    end.
 
 %% ============
 %% INTERNAL
