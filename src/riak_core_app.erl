@@ -100,8 +100,7 @@ start(_StartType, _StartArgs) ->
 prep_stop(_State) ->
     try %% wrap with a try/catch - application carries on regardless,
         %% no error message or logging about the failure otherwise.
-        lager:info("Stopping application riak_core - disabling web services.\n", []),
-        riak_core_sup:stop_webs()
+        lager:info("Stopping application riak_core - disabling web services.\n", [])
     catch
         Type:Reason ->
             lager:error("Stopping application riak_core - ~p:~p.\n", [Type, Reason])
